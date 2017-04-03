@@ -26,4 +26,7 @@ dependencies {
     })
     compile 'com.android.support:appcompat-v7:25.3.1'
     testCompile 'junit:junit:4.12'
+    compile('com.amazonaws:aws-android-sdk-lex:2.3.6@aar') {
+        transitive = true
+    }
 }
