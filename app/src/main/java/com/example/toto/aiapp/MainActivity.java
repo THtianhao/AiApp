@@ -3,20 +3,27 @@ package com.example.toto.aiapp;
 
 import android.app.Activity;
 import android.content.Intent;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 
+import com.github.ybq.android.spinkit.SpinKitView;
+import com.github.ybq.android.spinkit.style.CubeGrid;
+
 public class MainActivity extends Activity implements View.OnClickListener {
     private static final String TAG = "MainActivity";
     private Button textDemoButton;
     private Button speechDemoButton;
+    private SpinKitView mLoadingView;
 
     @Override
     protected void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        mLoadingView = (SpinKitView) findViewById(R.id.loading_view);
+        mLoadingView.setBackgroundColor(Color.BLACK);
         init();
     }
 
@@ -35,6 +42,7 @@ public class MainActivity extends Activity implements View.OnClickListener {
         speechDemoButton = (Button) findViewById(R.id.button_select_voice);
         textDemoButton.setOnClickListener(this);
         speechDemoButton.setOnClickListener(this);
+        mLoadingView.setIndeterminateDrawable(new CubeGrid());
     }
 
     /**
