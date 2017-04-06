@@ -22,6 +22,7 @@ import com.amazonaws.services.lexrts.model.DialogState;
 
 import java.text.DateFormat;
 import java.util.Date;
+import java.util.Map;
 
 public class TextActivity extends Activity {
     private static final String TAG = "TextActivity";
@@ -31,6 +32,8 @@ public class TextActivity extends Activity {
     private boolean inConversation;
     private LexServiceContinuation convContinuation;
     private int file_count = 0;
+    private Map<String, String> mSlots;
+    private String mShopType;
 
     @Override
     protected void onCreate(final Bundle savedInstanceState) {
@@ -107,7 +110,9 @@ public class TextActivity extends Activity {
         } else {
             Log.d(TAG, " -- Responding with text: " + text);
             addMessage(new TextMessage(text, "tx", getCurrentTimeStamp()));
-            convContinuation.continueWithTextInForTextOut(text);
+            if (convContinuation != null) {
+                convContinuation.continueWithTextInForTextOut(text);
+            }
         }
         clearTextInput();
     }
@@ -172,7 +177,16 @@ public class TextActivity extends Activity {
 
         @Override
         public void promptUserToRespond(final Response response,
-                final LexServiceContinuation continuation) {
+                                        final LexServiceContinuation continuation) {
+            if (response.getDialogState().equals("Fulfilled")) {
+                mSlots = response.getSlots();
+                mShopType = mSlots.get("ShopType");
+                if (mShopType.equals("flower")) {
+                    Log.d("tianhao", "flower");
+                } else if (mShopType.equals("book")) {
+                    Log.d("tianhao", "book");
+                }
+            }
             addMessage(new TextMessage(response.getTextResponse(), "rx", getCurrentTimeStamp()));
             readUserText(continuation);
         }
