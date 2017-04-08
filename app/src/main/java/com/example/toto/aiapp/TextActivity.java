@@ -199,9 +199,10 @@ public class TextActivity extends Activity {
                 mShopType = mSlots.get("ShopType");
                 if (mShopType.equals("flower")) {
                     Log.d("tianhao", "flower");
-                } else if (mShopType.equals("book")) {
-                    Log.d("tianhao", "book");
+                } else  {
+                    Log.d("tianhao", mShopType);
                     Intent newIntent = new Intent(TextActivity.this, CostomActivity.class);
+                    intent.putExtra("shoptype", mShopType);
                     newIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                     startActivity(newIntent);
                 }

@@ -52,6 +52,7 @@ public class ShowLoadingActivity extends Activity {
     private int mDownloadState = -1;
     private String mUrl = "http://13.124.90.99:8082/";
     private boolean isFinished = false;
+    private String mShopType;
 
     class ShopHandler extends Handler {
         ShopHandler() {
@@ -84,6 +85,9 @@ public class ShowLoadingActivity extends Activity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        Intent intent = getIntent();
+        Bundle bundle = intent.getExtras();
+        mShopType = bundle.getString("shoptype");
         if (!isFinished) {
             setContentView(R.layout.loading_view);
             mRecevier = new DownloadReceiver2();
@@ -187,7 +191,7 @@ public class ShowLoadingActivity extends Activity {
         @Override
         protected Map<String, String> getParams() throws AuthFailureError {
             HashMap<String, String> mMap = new HashMap<>();
-            mMap.put("param", "book");
+            mMap.put("param", mShopType);
             return mMap;
         }
     };

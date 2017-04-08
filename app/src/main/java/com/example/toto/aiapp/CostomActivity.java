@@ -34,12 +34,17 @@ public class CostomActivity extends Activity implements View.OnClickListener {
     private boolean imageboolean5 = true;
     private RequestQueue requestQueue;
     private String mUrl = "http://13.124.90.99:8082/";
+    private String mShopType;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.costom_layout);
         initView();
+        Intent intent = getIntent();
+        Bundle bundle = intent.getExtras();
+        mShopType = bundle.getString("shoptype");
+        Log.d("tianhao", "shop type is" + mShopType);
         requestQueue = Volley.newRequestQueue(this);
     }
 
@@ -49,6 +54,13 @@ public class CostomActivity extends Activity implements View.OnClickListener {
         imageView3 = (ImageView) findViewById(R.id.imageview_3);
         imageView4 = (ImageView) findViewById(R.id.imageview_4);
         imageView5 = (ImageView) findViewById(R.id.imageview_5);
+        if (mShopType.equals("book")){
+            imageView1.setImageDrawable(getResources().getDrawable(R.drawable.book1));
+            imageView2.setImageDrawable(getResources().getDrawable(R.drawable.book2));
+            imageView3.setImageDrawable(getResources().getDrawable(R.drawable.book3));
+            imageView4.setImageDrawable(getResources().getDrawable(R.drawable.book4));
+            imageView5.setImageDrawable(getResources().getDrawable(R.drawable.book5));
+        }
         mConfirm = (Button) findViewById(R.id.confirm);
         imageView1.setOnClickListener(this);
         imageView2.setOnClickListener(this);
@@ -89,6 +101,7 @@ public class CostomActivity extends Activity implements View.OnClickListener {
                 requestQueue.add(stringRequest);
                 Intent newIntent = new Intent(this, ShowLoadingActivity.class);
                 newIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                newIntent.putExtra("shoptype",mShopType);
                 startActivity(newIntent);
                 break;
         }
