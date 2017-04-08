@@ -1,8 +1,6 @@
 package com.example.toto.aiapp;
 
 import android.app.Activity;
-import android.app.DownloadManager;
-import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
@@ -30,13 +28,12 @@ public class CostomActivity extends Activity implements View.OnClickListener {
 
     private ImageView imageView1, imageView2, imageView3, imageView4, imageView5;
     private Button mConfirm;
-    private boolean imageboolean1 = true;
     private boolean imageboolean2 = true;
     private boolean imageboolean3 = true;
     private boolean imageboolean4 = true;
     private boolean imageboolean5 = true;
     private RequestQueue requestQueue;
-    private String mUrl = "http://10.60.233.41:8080/";
+    private String mUrl = "http://13.124.90.99:8082/";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -100,20 +97,34 @@ public class CostomActivity extends Activity implements View.OnClickListener {
     StringRequest stringRequest = new StringRequest(Request.Method.POST, mUrl, new Response.Listener<String>() {
         @Override
         public void onResponse(String response) {
-            Log.d("tianhao", "success");
+            Log.d("tianhao", "定制请求成功");
+            Toast.makeText(CostomActivity.this, "定制请求成功", Toast.LENGTH_SHORT).show();
         }
     }, new Response.ErrorListener() {
         @Override
         public void onErrorResponse(VolleyError error) {
-            Log.d("tianhao", "fail");
+            Log.d("tianhao", "定制请求失败");
+            Toast.makeText(CostomActivity.this, "定制请求失败", Toast.LENGTH_SHORT).show();
         }
     }) {
         @Override
         protected Map<String, String> getParams() throws AuthFailureError {
             HashMap<String, String> mMap = new HashMap<>();
-            mMap.put("param", "toto");
+            mMap.put("param", "export");
+            mMap.put("export1", String.valueOf(parseInt(imageboolean2)));
+            mMap.put("export2", String.valueOf(parseInt(imageboolean3)));
+            mMap.put("export3", String.valueOf(parseInt(imageboolean4)));
+            mMap.put("export4", String.valueOf(parseInt(imageboolean5)));
             return mMap;
         }
     };
+
+    private int parseInt(boolean bool) {
+        if (bool) {
+            return 0;
+        } else {
+            return 1;
+        }
+    }
 
 }

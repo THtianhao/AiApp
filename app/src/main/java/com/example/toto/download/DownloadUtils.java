@@ -93,6 +93,7 @@ public class DownloadUtils {
 
     public long downLoad(String url) {
         long id = -1;
+        prefs.edit().clear().apply();
         if (!prefs.contains(DL_ID)) {
             Request request = new Request(Uri.parse(url));
             //设置状态栏中显示Notification
@@ -164,7 +165,7 @@ public class DownloadUtils {
                     break;
                 case DownloadManager.STATUS_SUCCESSFUL:
                     //完成
-                    Log.v("tianhao", "下载完成");
+                    Log.v("tianhao", "STATUS_SUCCESSFUL");
                     state = 3;
                     Intent intent = new Intent();
                     intent.setAction("android.intent.action.DOWNLOAD_SUCCESS");

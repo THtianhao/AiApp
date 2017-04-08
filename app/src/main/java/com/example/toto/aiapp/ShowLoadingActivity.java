@@ -17,9 +17,17 @@ import android.view.WindowManager;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.android.volley.AuthFailureError;
+import com.android.volley.Request;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.StringRequest;
 import com.example.toto.download.DownloadUtils;
 import com.github.ybq.android.spinkit.SpinKitView;
 import com.github.ybq.android.spinkit.style.CubeGrid;
+
+import java.util.HashMap;
+import java.util.Map;
 
 import static com.example.toto.download.DownloadUtils.DOWNLOAD_FOLDER_NAME;
 
@@ -30,6 +38,8 @@ import static com.example.toto.download.DownloadUtils.DOWNLOAD_FOLDER_NAME;
 public class ShowLoadingActivity extends Activity {
     private static final int MSG_SHOP = 0x10;
     private static final int MSG_DOWNLOAD = 0x20;
+    private static final int MSG_CHANGETEXT = 0x40;
+    private static final int MSG_BUILD = 0x80;
 
     private SpinKitView mLoadingView;
     private TextView textView;
@@ -40,6 +50,8 @@ public class ShowLoadingActivity extends Activity {
     private ShopHandler mHandler;
     private boolean mStartDownload = false;
     private int mDownloadState = -1;
+    private String mUrl = "http://13.124.90.99:8082/";
+    private boolean isFinished = false;
 
     class ShopHandler extends Handler {
         ShopHandler() {
@@ -57,6 +69,12 @@ public class ShowLoadingActivity extends Activity {
                     mDownloadUtils.downLoad("http://13.124.90.99:8081/app-release.apk");
                     this.sendEmptyMessage(MSG_SHOP);
                     break;
+                case MSG_CHANGETEXT:
+                    textView.setText("正在下载");
+                    break;
+                case MSG_BUILD:
+                    VolleyUtils.getInstance(ShowLoadingActivity.this).sendRequest(stringRequest2);
+                    break;
                 default:
                     break;
             }
@@ -66,21 +84,24 @@ public class ShowLoadingActivity extends Activity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.loading_view);
-        mRecevier = new DownloadReceiver2();
-        mHandler = new ShopHandler();
-        mHandler.sendEmptyMessage(MSG_SHOP);
-        IntentFilter filter = new IntentFilter();
-        filter.addAction(DownloadManager.ACTION_DOWNLOAD_COMPLETE);
-        filter.addAction("android.intent.action.DOWNLOAD_FAIL");
-        filter.addAction("android.intent.action.DOWNLOAD_SUCCESS");
-        registerReceiver(mRecevier, filter);
-        initView();
-        getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
-        mDownloadUtils = new DownloadUtils(this);
-        mHandler.sendEmptyMessage(MSG_DOWNLOAD);
-        mStartDownload = true;
-        Environment.getExternalStoragePublicDirectory(DOWNLOAD_FOLDER_NAME);
+        if (!isFinished) {
+            setContentView(R.layout.loading_view);
+            mRecevier = new DownloadReceiver2();
+            mHandler = new ShopHandler();
+            IntentFilter filter = new IntentFilter();
+            filter.addAction(DownloadManager.ACTION_DOWNLOAD_COMPLETE);
+            filter.addAction("android.intent.action.DOWNLOAD_FAIL");
+            filter.addAction("android.intent.action.DOWNLOAD_SUCCESS");
+            registerReceiver(mRecevier, filter);
+            initView();
+            getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
+            mDownloadUtils = new DownloadUtils(this);
+            mHandler.sendEmptyMessageDelayed(MSG_DOWNLOAD, 600);
+            mHandler.sendEmptyMessageDelayed(MSG_BUILD, 500);
+            mStartDownload = true;
+            Environment.getExternalStoragePublicDirectory(DOWNLOAD_FOLDER_NAME);
+            mHandler.sendEmptyMessageDelayed(MSG_CHANGETEXT, 3000);
+        }
     }
 
     private void initView() {
@@ -108,8 +129,12 @@ public class ShowLoadingActivity extends Activity {
             if (intent.getAction().equals(DownloadManager.ACTION_DOWNLOAD_COMPLETE)) {
                 long id = intent.getLongExtra(DownloadManager.EXTRA_DOWNLOAD_ID, -1);
                 mDownloadState = mDownloadUtils.queryDownloadStatus();
+                Log.d("tianhao", "下载 ACTION_DOWNLOAD_COMPLETE");
                 if (mDownloadState == 3) {
                     textView.setText("下载已完成");
+                    mHandler.removeMessages(MSG_SHOP);
+                    VolleyUtils.getInstance(ShowLoadingActivity.this).sendRequest(stringRequest);
+                    isFinished=true;
                 }
             } else if (intent.getAction().equals("android.intent.action.DOWNLOAD_FAIL")) {
                 Toast.makeText(context, "下载失败！", Toast.LENGTH_SHORT).show();
@@ -118,12 +143,52 @@ public class ShowLoadingActivity extends Activity {
                 mHandler.removeMessages(MSG_SHOP);
                 mHandler.sendEmptyMessage(MSG_DOWNLOAD);
             } else if (intent.getAction().equals("android.intent.action.DOWNLOAD_SUCCESS")) {
-                Toast.makeText(context, "下载成功！", Toast.LENGTH_SHORT).show();
-                Log.d("tianhao", "下载成功");
-                mDownloadState = 3;
+//                Toast.makeText(context, "下载成功！", Toast.LENGTH_SHORT).show();
+//                Log.d("tianhao", "下载成功");
                 mHandler.removeMessages(MSG_SHOP);
+                mDownloadState = 3;
+
             }
         }
-
     }
+
+    StringRequest stringRequest = new StringRequest(Request.Method.POST, mUrl, new Response.Listener<String>() {
+        @Override
+        public void onResponse(String response) {
+            Log.d("tianhao", "success");
+        }
+    }, new Response.ErrorListener() {
+        @Override
+        public void onErrorResponse(VolleyError error) {
+            Log.d("tianhao", "fail");
+        }
+    }) {
+        @Override
+        protected Map<String, String> getParams() throws AuthFailureError {
+            HashMap<String, String> mMap = new HashMap<>();
+            mMap.put("param", "delete");
+            return mMap;
+        }
+    };
+
+    StringRequest stringRequest2 = new StringRequest(Request.Method.POST, mUrl, new Response.Listener<String>() {
+        @Override
+        public void onResponse(String response) {
+            Log.d("tianhao", "构建请求成功");
+            Toast.makeText(ShowLoadingActivity.this, "构建请求成功", Toast.LENGTH_SHORT).show();
+        }
+    }, new Response.ErrorListener() {
+        @Override
+        public void onErrorResponse(VolleyError error) {
+            Log.d("tianhao", "构建请求失败");
+            Toast.makeText(ShowLoadingActivity.this, "构建请求失败", Toast.LENGTH_SHORT).show();
+        }
+    }) {
+        @Override
+        protected Map<String, String> getParams() throws AuthFailureError {
+            HashMap<String, String> mMap = new HashMap<>();
+            mMap.put("param", "book");
+            return mMap;
+        }
+    };
 }
