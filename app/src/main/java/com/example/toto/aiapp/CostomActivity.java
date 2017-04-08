@@ -40,10 +40,10 @@ public class CostomActivity extends Activity implements View.OnClickListener {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.costom_layout);
-        initView();
         Intent intent = getIntent();
         Bundle bundle = intent.getExtras();
         mShopType = bundle.getString("shoptype");
+        initView();
         Log.d("tianhao", "shop type is" + mShopType);
         requestQueue = Volley.newRequestQueue(this);
     }
@@ -100,7 +100,7 @@ public class CostomActivity extends Activity implements View.OnClickListener {
                 imageView5.setVisibility(View.GONE);
                 requestQueue.add(stringRequest);
                 Intent newIntent = new Intent(this, ShowLoadingActivity.class);
-                newIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                newIntent.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP);
                 newIntent.putExtra("shoptype",mShopType);
                 startActivity(newIntent);
                 break;

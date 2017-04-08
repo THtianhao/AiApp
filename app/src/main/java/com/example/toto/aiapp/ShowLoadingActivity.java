@@ -104,7 +104,7 @@ public class ShowLoadingActivity extends Activity {
             mHandler.sendEmptyMessageDelayed(MSG_BUILD, 500);
             mStartDownload = true;
             Environment.getExternalStoragePublicDirectory(DOWNLOAD_FOLDER_NAME);
-            mHandler.sendEmptyMessageDelayed(MSG_CHANGETEXT, 3000);
+            mHandler.sendEmptyMessageDelayed(MSG_CHANGETEXT, 10000);
         }
     }
 
@@ -141,7 +141,6 @@ public class ShowLoadingActivity extends Activity {
                     isFinished=true;
                 }
             } else if (intent.getAction().equals("android.intent.action.DOWNLOAD_FAIL")) {
-                Toast.makeText(context, "下载失败！", Toast.LENGTH_SHORT).show();
                 Log.d("tianhao", "下载失败");
                 mDownloadState = 4;
                 mHandler.removeMessages(MSG_SHOP);
