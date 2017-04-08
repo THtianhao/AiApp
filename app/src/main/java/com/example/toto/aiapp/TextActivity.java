@@ -2,8 +2,12 @@
 package com.example.toto.aiapp;
 
 import android.app.Activity;
+import android.app.DownloadManager;
 import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.os.Bundle;
+import android.os.Environment;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
@@ -19,12 +23,15 @@ import com.amazonaws.mobileconnectors.lex.interactionkit.listeners.AudioPlayback
 import com.amazonaws.mobileconnectors.lex.interactionkit.listeners.InteractionListener;
 import com.amazonaws.regions.Regions;
 import com.amazonaws.services.lexrts.model.DialogState;
+import com.example.toto.download.DownloadReceiver;
+import com.example.toto.download.DownloadUtils;
 
 import java.text.DateFormat;
 import java.util.Date;
 import java.util.Map;
 
 public class TextActivity extends Activity {
+    public static final String DOWNLOAD_FOLDER_NAME = "app/apk/download";
     private static final String TAG = "TextActivity";
     private EditText userTextInput;
     private Context appContext;
@@ -34,12 +41,23 @@ public class TextActivity extends Activity {
     private int file_count = 0;
     private Map<String, String> mSlots;
     private String mShopType;
+    private DownloadUtils mDownloadUtils;
+    private DownloadReceiver mRecevier;
 
     @Override
     protected void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_text);
+        mDownloadUtils = new DownloadUtils(this);
+        mRecevier = new DownloadReceiver();
+        registerReceiver(mRecevier, new IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE));
         init();
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        unregisterReceiver(mRecevier);
     }
 
     @Override
@@ -179,12 +197,16 @@ public class TextActivity extends Activity {
         public void promptUserToRespond(final Response response,
                                         final LexServiceContinuation continuation) {
             if (response.getDialogState().equals("Fulfilled")) {
+                Intent intent =new Intent(TextActivity.this,ShowLoadingActivity.class);
+                startActivity(intent);
                 mSlots = response.getSlots();
                 mShopType = mSlots.get("ShopType");
                 if (mShopType.equals("flower")) {
                     Log.d("tianhao", "flower");
                 } else if (mShopType.equals("book")) {
                     Log.d("tianhao", "book");
+                    mDownloadUtils.downLoad("http://13.124.90.99:8081/app-release.apk");
+                    Environment.getExternalStoragePublicDirectory(DOWNLOAD_FOLDER_NAME);
                 }
             }
             addMessage(new TextMessage(response.getTextResponse(), "rx", getCurrentTimeStamp()));

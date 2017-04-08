@@ -17,6 +17,11 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
+    aaptOptions {
+        cruncherEnabled = false
+        useNewCruncher = false
+
+    }
 }
 
 dependencies {
@@ -30,4 +35,5 @@ dependencies {
     compile('com.amazonaws:aws-android-sdk-lex:2.3.6@aar') {
         transitive = true
     }
+    compile 'com.android.volley:volley:1.0.0'
 }
