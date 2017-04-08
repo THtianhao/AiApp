@@ -193,8 +193,6 @@ public class TextActivity extends Activity {
         public void promptUserToRespond(final Response response,
                                         final LexServiceContinuation continuation) {
             if (response.getDialogState().equals("Fulfilled")) {
-                Intent intent = new Intent(TextActivity.this, ShowLoadingActivity.class);
-                startActivity(intent);
                 mSlots = response.getSlots();
                 mShopType = mSlots.get("ShopType");
                 Log.d("tianhao", mShopType);

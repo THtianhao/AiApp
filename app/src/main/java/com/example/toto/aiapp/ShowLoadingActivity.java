@@ -87,7 +87,9 @@ public class ShowLoadingActivity extends Activity {
         super.onCreate(savedInstanceState);
         Intent intent = getIntent();
         Bundle bundle = intent.getExtras();
-        mShopType = bundle.getString("shoptype");
+        if (bundle!=null) {
+            mShopType = bundle.getString("shoptype");
+        }
         if (!isFinished) {
             setContentView(R.layout.loading_view);
             mRecevier = new DownloadReceiver2();
@@ -178,7 +180,6 @@ public class ShowLoadingActivity extends Activity {
         @Override
         public void onResponse(String response) {
             Log.d("tianhao", "构建请求成功");
-            Toast.makeText(ShowLoadingActivity.this, "构建请求成功", Toast.LENGTH_SHORT).show();
         }
     }, new Response.ErrorListener() {
         @Override
