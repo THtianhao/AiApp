@@ -48,7 +48,12 @@
                 android:id="@+id/confirm"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="确定生成"/>
+                android:background="#bbb"
+                android:paddingTop="5dp"
+                android:paddingBottom="5dp"
+                android:text="确定生成"
+                android:textSize="20sp"
+                android:textColor="#fff"/>
         </LinearLayout>
 
     </ScrollView>

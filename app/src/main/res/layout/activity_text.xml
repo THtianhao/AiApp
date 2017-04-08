@@ -8,7 +8,7 @@
     android:paddingLeft="@dimen/activity_intra_group_separation"
     android:paddingRight="@dimen/activity_intra_group_separation"
     android:paddingTop="@dimen/activity_intra_group_separation"
-    android:background ="#FFFFFF">
+    android:background ="#9000">
 
     <include layout="@layout/text_response_content" />
 
