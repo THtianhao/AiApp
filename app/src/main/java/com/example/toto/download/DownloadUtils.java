@@ -8,11 +8,15 @@ import android.app.DownloadManager;
 import android.app.DownloadManager.Request;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
+import android.database.Cursor;
 import android.net.Uri;
 import android.os.Environment;
+import android.preference.PreferenceManager;
 import android.text.TextUtils;
+import android.util.Log;
 import android.webkit.MimeTypeMap;
 
 import java.io.File;
@@ -33,7 +37,8 @@ public class DownloadUtils {
     private String notificationTitle;
     private String notificationDescription;
     private DownloadManager downLoadManager;
-
+    private SharedPreferences prefs;
+    private static final String DL_ID = "downloadId";
     public static final String DOWNLOAD_FOLDER_NAME = "app/apk/download";
     public static final String DOWNLOAD_FILE_NAME = "test.apk";
 
@@ -58,6 +63,7 @@ public class DownloadUtils {
         this.context = context;
         downLoadManager = (DownloadManager) this.context
                 .getSystemService(Context.DOWNLOAD_SERVICE);
+        prefs = PreferenceManager.getDefaultSharedPreferences(context);
     }
 
     //得到当前应用的版本号
@@ -85,35 +91,41 @@ public class DownloadUtils {
         return true;
     }
 
-    public void downLoad(String url) {
-        Request request = new Request(Uri.parse(url));
-        //设置状态栏中显示Notification
-        request.setNotificationVisibility(Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED);
-        if (!TextUtils.isEmpty(getNotificationTitle())) {
-            request.setTitle(getNotificationTitle());
-        }
-        if (!TextUtils.isEmpty(getNotificationDescription())) {
-            request.setDescription(getNotificationDescription());
-        }
-        //设置可用的网络类型
-        request.setAllowedNetworkTypes(Request.NETWORK_MOBILE | Request.NETWORK_WIFI);
-        //不显示下载界面
-        request.setVisibleInDownloadsUi(false);
+    public long downLoad(String url) {
+        long id = -1;
+        if (!prefs.contains(DL_ID)) {
+            Request request = new Request(Uri.parse(url));
+            //设置状态栏中显示Notification
+            request.setNotificationVisibility(Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED);
+            if (!TextUtils.isEmpty(getNotificationTitle())) {
+                request.setTitle(getNotificationTitle());
+            }
+            if (!TextUtils.isEmpty(getNotificationDescription())) {
+                request.setDescription(getNotificationDescription());
+            }
+            //设置可用的网络类型
+            request.setAllowedNetworkTypes(Request.NETWORK_MOBILE | Request.NETWORK_WIFI);
+            //不显示下载界面
+            request.setVisibleInDownloadsUi(false);
 
-        //创建文件的下载路径
-        File folder = Environment.getExternalStoragePublicDirectory(DOWNLOAD_FOLDER_NAME);
-        if (!folder.exists() || !folder.isDirectory()) {
-            folder.mkdirs();
-        }
-        //指定下载的路径为和上面创建的路径相同
-        request.setDestinationInExternalPublicDir(DOWNLOAD_FOLDER_NAME, DOWNLOAD_FILE_NAME);
+            //创建文件的下载路径
+            File folder = Environment.getExternalStoragePublicDirectory(DOWNLOAD_FOLDER_NAME);
+            if (!folder.exists() || !folder.isDirectory()) {
+                folder.mkdirs();
+            }
+            //指定下载的路径为和上面创建的路径相同
+            request.setDestinationInExternalPublicDir(DOWNLOAD_FOLDER_NAME, DOWNLOAD_FILE_NAME);
 
-        //设置文件类型
-        MimeTypeMap mimeTypeMap = MimeTypeMap.getSingleton();
-        String mimeString = mimeTypeMap.getMimeTypeFromExtension(MimeTypeMap.getFileExtensionFromUrl(url));
-        request.setMimeType(mimeString);
-        //将请求加入请求队列会 downLoadManager会自动调用对应的服务执行者个请求
-        downLoadManager.enqueue(request);
+            //设置文件类型
+            MimeTypeMap mimeTypeMap = MimeTypeMap.getSingleton();
+            String mimeString = mimeTypeMap.getMimeTypeFromExtension(MimeTypeMap.getFileExtensionFromUrl(url));
+            request.setMimeType(mimeString);
+            //将请求加入请求队列会 downLoadManager会自动调用对应的服务执行者个请求
+            id = downLoadManager.enqueue(request);
+            prefs.edit().putLong(DL_ID, id).commit();
+
+        }
+        return id;
     }
 
     //文件的安装 方法
@@ -127,5 +139,50 @@ public class DownloadUtils {
             return true;
         }
         return false;
+    }
+
+    public int queryDownloadStatus() {
+        int state = -1;
+        DownloadManager.Query query = new DownloadManager.Query();
+        query.setFilterById(prefs.getLong(DL_ID, 0));
+        Cursor c = downLoadManager.query(query);
+        if (c.moveToFirst()) {
+            int status = c.getInt(c.getColumnIndex(DownloadManager.COLUMN_STATUS));
+            switch (status) {
+                case DownloadManager.STATUS_PAUSED:
+                    Log.v("tianhao", "STATUS_PAUSED");
+                    state = 0;
+                    break;
+                case DownloadManager.STATUS_PENDING:
+                    Log.v("tianhao", "STATUS_PENDING");
+                    state = 1;
+                    break;
+                case DownloadManager.STATUS_RUNNING:
+                    //正在下载，不做任何事情
+                    Log.v("tianhao", "STATUS_RUNNING");
+                    state = 2;
+                    break;
+                case DownloadManager.STATUS_SUCCESSFUL:
+                    //完成
+                    Log.v("tianhao", "下载完成");
+                    state = 3;
+                    Intent intent = new Intent();
+                    intent.setAction("android.intent.action.DOWNLOAD_SUCCESS");
+                    context.sendBroadcast(intent);
+                    break;
+                case DownloadManager.STATUS_FAILED:
+                    //清除已下载的内容，重新下载
+                    Log.v("tianhao", "STATUS_FAILED");
+                    downLoadManager.remove(prefs.getLong(DL_ID, 0));
+                    prefs.edit().clear().commit();
+                    state = 4;
+                    Intent intent2 = new Intent();
+                    intent2.setAction("android.intent.action.DOWNLOAD_FAIL");
+                    context.sendBroadcast(intent2);
+                    break;
+            }
+
+        }
+        return state;
     }
 }

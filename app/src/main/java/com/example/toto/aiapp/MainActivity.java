@@ -35,7 +35,6 @@ public class MainActivity extends Activity implements View.OnClickListener {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         init();
-        requestQueue = Volley.newRequestQueue(this);
     }
 
     @Override
@@ -96,7 +95,7 @@ public class MainActivity extends Activity implements View.OnClickListener {
                 startActivity(voiceIntent);
                 break;
             case R.id.totobutton:
-//                requestQueue.add(stringRequest);
+                requestQueue.add(stringRequest);
                 Intent newIntent = new Intent(this, CostomActivity.class);
                 newIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                 startActivity(newIntent);

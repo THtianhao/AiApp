@@ -7,7 +7,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Bundle;
-import android.os.Environment;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
@@ -24,7 +23,6 @@ import com.amazonaws.mobileconnectors.lex.interactionkit.listeners.InteractionLi
 import com.amazonaws.regions.Regions;
 import com.amazonaws.services.lexrts.model.DialogState;
 import com.example.toto.download.DownloadReceiver;
-import com.example.toto.download.DownloadUtils;
 
 import java.text.DateFormat;
 import java.util.Date;
@@ -41,14 +39,12 @@ public class TextActivity extends Activity {
     private int file_count = 0;
     private Map<String, String> mSlots;
     private String mShopType;
-    private DownloadUtils mDownloadUtils;
     private DownloadReceiver mRecevier;
 
     @Override
     protected void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_text);
-        mDownloadUtils = new DownloadUtils(this);
         mRecevier = new DownloadReceiver();
         registerReceiver(mRecevier, new IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE));
         init();
@@ -197,7 +193,7 @@ public class TextActivity extends Activity {
         public void promptUserToRespond(final Response response,
                                         final LexServiceContinuation continuation) {
             if (response.getDialogState().equals("Fulfilled")) {
-                Intent intent =new Intent(TextActivity.this,ShowLoadingActivity.class);
+                Intent intent = new Intent(TextActivity.this, ShowLoadingActivity.class);
                 startActivity(intent);
                 mSlots = response.getSlots();
                 mShopType = mSlots.get("ShopType");
@@ -205,8 +201,9 @@ public class TextActivity extends Activity {
                     Log.d("tianhao", "flower");
                 } else if (mShopType.equals("book")) {
                     Log.d("tianhao", "book");
-                    mDownloadUtils.downLoad("http://13.124.90.99:8081/app-release.apk");
-                    Environment.getExternalStoragePublicDirectory(DOWNLOAD_FOLDER_NAME);
+                    Intent newIntent = new Intent(TextActivity.this, CostomActivity.class);
+                    newIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                    startActivity(newIntent);
                 }
             }
             addMessage(new TextMessage(response.getTextResponse(), "rx", getCurrentTimeStamp()));
